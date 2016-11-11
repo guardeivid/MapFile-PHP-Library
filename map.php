@@ -43,7 +43,7 @@ class Map {
   private $_layers = array();
 
   /** @var float[] Spatial extent.*/
-  public $extent = array(-1, -1, -1, -1);
+  public $extent = array(-1.0, -1.0, -1.0, -1.0);
   /** @var integer Size Y (height) in pixels of the output image. */
   public $height = 500;
   /** @var string MapFile name. */
@@ -54,6 +54,8 @@ class Map {
    * @link http://spatialreference.org/ref/epsg/
    */
   public $projection;
+  /** @var integer[] Size in pixels of the output image (i.e. the map). */
+  public $size;
   /**
    * @var integer MapFile Status (Is the map active ?).
    * @note Use :
@@ -320,12 +322,12 @@ class Map {
         $reading = NULL;
       } else if ($map && $reading == 'PROJECTION' && preg_match('/^"init=(.+)"$/i', $sz, $matches)) {
         $this->projection = $matches[1];
-      } else if ($map && is_null($reading) && preg_match('/^LEGEND$/i', $sz)) { $reading = 'LEGEND'; $legend[] = $sz; } else if ($map && $reading == 'LEGEND' && preg_match('/^LABEL$/i', $sz)) { $legend[] = $sz; $reading = 'LEGEND_LABEL'; } else if ($map && $reading == 'LEGEND' && preg_match('/^END( # LEGEND)?$/i', $sz)) { $legend[] = $sz; $this->legend = new Legend($legend); $reading = NULL; unset($legend); } else if ($map && $reading == 'LEGEND') { $legend[] = $sz; } else if ($map && $reading == 'LEGEND_LABEL' && preg_match('/^END( # LABEL)?$/i', $sz)) { $legend[] = $sz; $reading = 'LEGEND'; } else if ($map && $reading == 'LEGEND_LABEL') { $legend[] = $sz; } else if ($map && is_null($reading) && preg_match('/^SCALEBAR$/i', $sz)) { $reading = 'SCALEBAR'; $scalebar[] = $sz; } else if ($map && $reading == 'SCALEBAR' && preg_match('/^LABEL$/i', $sz)) { $scalebar[] = $sz; $reading = 'SCALEBAR_LABEL'; } else if ($map && $reading == 'SCALEBAR' && preg_match('/^END( # SCALEBAR)?$/i', $sz)) { $scalebar[] = $sz; $this->scalebar = new Scalebar($scalebar); $reading = NULL; unset($scalebar); } else if ($map && $reading == 'SCALEBAR') { $scalebar[] = $sz; } else if ($map && $reading == 'SCALEBAR_LABEL' && preg_match('/^END( # LABEL)?$/i', $sz)) { $scalebar[] = $sz; $reading = 'SCALEBAR'; } else if ($map && $reading == 'SCALEBAR_LABEL') { $scalebar[] = $sz; } else if ($map && is_null($reading) && preg_match('/^LAYER$/i', $sz)) { $reading = 'LAYER'; $layer[] = $sz; } else if ($map && $reading == 'LAYER' && preg_match('/^PROJECTION$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER_PROJECTION'; } else if ($map && $reading == 'LAYER' && preg_match('/^CLASS$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER_CLASS'; } else if ($map && $reading == 'LAYER' && preg_match('/^METADATA$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER_METADATA'; } else if ($map && $reading == 'LAYER' && preg_match('/^VALIDATION$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER_VALIDATION'; } else if ($map && $reading == 'LAYER' && preg_match('/^END( # LAYER)?$/i', $sz)) { $layer[] = $sz; $this->addLayer(new Layer($layer)); $reading = NULL; unset($layer); } else if ($map && $reading == 'LAYER') { $layer[] = $sz; } else if ($map && $reading == 'LAYER_PROJECTION' && preg_match('/^END( # PROJECTION)?$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER'; } else if ($map && $reading == 'LAYER_PROJECTION') { $layer[] = $sz; } else if ($map && $reading == 'LAYER_CLASS' && preg_match('/^END( # CLASS)?$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER'; } else if ($map && $reading == 'LAYER_CLASS') { $layer[] = $sz; } else if ($map && $reading == 'LAYER_METADATA' && preg_match('/^END( # METADATA)?$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER'; } else if ($map && $reading == 'LAYER_METADATA') { $layer[] = $sz; } else if ($map && $reading == 'LAYER_VALIDATION' && preg_match('/^END( # VALIDATION)?$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER'; } else if ($map && $reading == 'LAYER_VALIDATION') { $layer[] = $sz; } else if ($map && is_null($reading) && preg_match('/^WEB$/i', $sz)) { $reading = 'WEB'; } else if ($map && $reading == 'WEB' && preg_match('/^METADATA$/i', $sz)) { $reading = 'WEB_METADATA'; } else if ($map && $reading == 'WEB' && preg_match('/^END( # WEB)?$/i', $sz)) { $reading = NULL; } else if ($map && $reading == 'WEB_METADATA' && preg_match('/^END( # METADATA)?$/i', $sz)) { $reading = NULL; } else if ($map && $reading == 'WEB_METADATA' && preg_match('/^"(.+)"\s"(.+)"$/i', $sz, $matches)) { $this->metadata[$matches[1]] = $matches[2]; } else if ($map && is_null($reading) && preg_match('/^NAME "(.+)"$/i', $sz, $matches)) {
+      } else if ($map && is_null($reading) && preg_match('/^LEGEND$/i', $sz)) { $reading = 'LEGEND'; $legend = array( $sz ); } else if ($map && $reading == 'LEGEND' && preg_match('/^LABEL$/i', $sz)) { $legend[] = $sz; $reading = 'LEGEND_LABEL'; } else if ($map && $reading == 'LEGEND' && preg_match('/^END( # LEGEND)?$/i', $sz)) { $legend[] = $sz; $this->legend = new Legend($legend); $reading = NULL; unset($legend); } else if ($map && $reading == 'LEGEND') { $legend[] = $sz; } else if ($map && $reading == 'LEGEND_LABEL' && preg_match('/^END( # LABEL)?$/i', $sz)) { $legend[] = $sz; $reading = 'LEGEND'; } else if ($map && $reading == 'LEGEND_LABEL') { $legend[] = $sz; } else if ($map && is_null($reading) && preg_match('/^SCALEBAR$/i', $sz)) { $reading = 'SCALEBAR'; $scalebar = array( $sz ); } else if ($map && $reading == 'SCALEBAR' && preg_match('/^LABEL$/i', $sz)) { $scalebar[] = $sz; $reading = 'SCALEBAR_LABEL'; } else if ($map && $reading == 'SCALEBAR' && preg_match('/^END( # SCALEBAR)?$/i', $sz)) { $scalebar[] = $sz; $this->scalebar = new Scalebar($scalebar); $reading = NULL; unset($scalebar); } else if ($map && $reading == 'SCALEBAR') { $scalebar[] = $sz; } else if ($map && $reading == 'SCALEBAR_LABEL' && preg_match('/^END( # LABEL)?$/i', $sz)) { $scalebar[] = $sz; $reading = 'SCALEBAR'; } else if ($map && $reading == 'SCALEBAR_LABEL') { $scalebar[] = $sz; } else if ($map && is_null($reading) && preg_match('/^LAYER$/i', $sz)) { $reading = 'LAYER'; $layer = array( $sz ); } else if ($map && $reading == 'LAYER' && preg_match('/^PROJECTION$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER_PROJECTION'; } else if ($map && $reading == 'LAYER' && preg_match('/^CLASS$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER_CLASS'; } else if ($map && $reading == 'LAYER' && preg_match('/^METADATA$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER_METADATA'; } else if ($map && $reading == 'LAYER' && preg_match('/^VALIDATION$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER_VALIDATION'; } else if ($map && $reading == 'LAYER' && preg_match('/^END( # LAYER)?$/i', $sz)) { $layer[] = $sz; $this->addLayer(new Layer($layer)); $reading = NULL; unset($layer); } else if ($map && $reading == 'LAYER') { $layer[] = $sz; } else if ($map && $reading == 'LAYER_PROJECTION' && preg_match('/^END( # PROJECTION)?$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER'; } else if ($map && $reading == 'LAYER_PROJECTION') { $layer[] = $sz; } else if ($map && $reading == 'LAYER_CLASS' && preg_match('/^END( # CLASS)?$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER'; } else if ($map && $reading == 'LAYER_CLASS') { $layer[] = $sz; } else if ($map && $reading == 'LAYER_METADATA' && preg_match('/^END( # METADATA)?$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER'; } else if ($map && $reading == 'LAYER_METADATA') { $layer[] = $sz; } else if ($map && $reading == 'LAYER_VALIDATION' && preg_match('/^END( # VALIDATION)?$/i', $sz)) { $layer[] = $sz; $reading = 'LAYER'; } else if ($map && $reading == 'LAYER_VALIDATION') { $layer[] = $sz; } else if ($map && is_null($reading) && preg_match('/^WEB$/i', $sz)) { $reading = 'WEB'; } else if ($map && $reading == 'WEB' && preg_match('/^METADATA$/i', $sz)) { $reading = 'WEB_METADATA'; } else if ($map && $reading == 'WEB' && preg_match('/^END( # WEB)?$/i', $sz)) { $reading = NULL; } else if ($map && $reading == 'WEB_METADATA' && preg_match('/^END( # METADATA)?$/i', $sz)) { $reading = NULL; } else if ($map && $reading == 'WEB_METADATA' && preg_match('/^"(.+)"\s"(.+)"$/i', $sz, $matches)) { $this->metadata[$matches[1]] = $matches[2]; } else if ($map && is_null($reading) && preg_match('/^NAME "(.+)"$/i', $sz, $matches)) {
         $this->name = $matches[1];
       } else if ($map && is_null($reading) && preg_match('/^STATUS (.+)$/i', $sz, $matches)) {
-        $this->status = self::convertStatus(strtoupper($matches[1]));
+        $this->status = intval(self::convertStatus(strtoupper($matches[1])));
       } else if ($map && is_null($reading) && preg_match('/^EXTENT (-?[0-9\.]+) (-?[0-9\.]+) (-?[0-9\.]+) (-?[0-9\.]+)$/i', $sz, $matches)) {
-        $this->extent = array($matches[1], $matches[2], $matches[3], $matches[4]);
+        $this->extent = array(floatval($matches[1]), floatval($matches[2]), floatval($matches[3]), floatval($matches[4]));
       } else if ($map && is_null($reading) && preg_match('/^FONTSET "(.+)"$/i', $sz, $matches)) {
         $this->fontsetfilename = $matches[1];
       } else if ($map && is_null($reading) && preg_match('/^SYMBOLSET "(.+)"$/i', $sz, $matches)) {
@@ -333,7 +335,7 @@ class Map {
       } else if ($map && is_null($reading) && preg_match('/^SIZE ([0-9]+) ([0-9]+)$/i', $sz, $matches)) {
         $this->size = array($matches[1], $matches[2]);
       } else if ($map && is_null($reading) && preg_match('/^UNITS (.+)$/i', $sz, $matches)) {
-        $this->units = self::convertUnits(strtoupper($matches[1]));
+        $this->units = intval(self::convertUnits(strtoupper($matches[1])));
       }
     }
     fclose($h);
@@ -350,10 +352,14 @@ class Map {
       self::STATUS_OFF => 'OFF'
     );
 
-    if (is_numeric($s)) {
-      return (isset($statuses[$s]) ? $statuses[$s] : FALSE);
-    } else {
+    if (is_numeric($s) && isset($statuses[$s])) {
+      return $statuses[$s];
+    }
+    else if (!is_numeric($s) && array_search($s, $statuses)) {
       return array_search($s, $statuses);
+    }
+    else {
+      throw new Exception(sprintf('Invalid STATUS (%s).', $s));
     }
   }
   /**
@@ -373,10 +379,14 @@ class Map {
       self::UNITS_NAUTICALMILES => 'NAUTICALMILES'
     );
 
-    if (is_numeric($u)) {
-      return (isset($units[$u]) ? $units[$u] : FALSE);
-    } else {
+    if (is_numeric($u) && isset($units[$u])) {
+      return $units[$u];
+    }
+    else if (!is_numeric($u) && array_search($u, $units)) {
       return array_search($u, $units);
+    }
+    else {
+      throw new Exception(sprintf('Invalid UNITS (%s).', $u));
     }
   }
 }

@@ -147,16 +147,16 @@ class Scalebar {
         $scalebar = TRUE;
       } else if ($scalebar && is_null($reading) && preg_match('/^END( # SCALEBAR)?$/i', $sz)) {
         $scalebar = FALSE;
-      } else if ($scalebar && is_null($reading) && preg_match('/^LABEL$/i', $sz)) { $reading = 'LABEL'; $label[] = $sz; } else if ($scalebar && $reading == 'LABEL' && preg_match('/^END( # LABEL)?$/i', $sz)) { $label[] = $sz; $this->label = new Label($label); $reading = NULL; unset($label); } else if ($scalebar && $reading == 'LABEL') { $label[] = $sz; } else if ($scalebar && is_null($reading) && preg_match('/^STATUS (.+)$/i', $sz, $matches)) {
-        $this->status = self::convertStatus(strtoupper($matches[1]));
+      } else if ($scalebar && is_null($reading) && preg_match('/^LABEL$/i', $sz)) { $reading = 'LABEL'; $label = array( $sz ); } else if ($scalebar && $reading == 'LABEL' && preg_match('/^END( # LABEL)?$/i', $sz)) { $label[] = $sz; $this->label = new Label($label); $reading = NULL; unset($label); } else if ($scalebar && $reading == 'LABEL') { $label[] = $sz; } else if ($scalebar && is_null($reading) && preg_match('/^STATUS (.+)$/i', $sz, $matches)) {
+        $this->status = intval(self::convertStatus(strtoupper($matches[1])));
       } else if ($scalebar && is_null($reading) && preg_match('/^INTERVALS ([0-9]+)$/i', $sz, $matches)) {
-        $this->intervals = $matches[1];
+        $this->intervals = intval($matches[1]);
       } else if ($scalebar && is_null($reading) && preg_match('/^COLOR ([0-9]+) ([0-9]+) ([0-9]+)$/i', $sz, $matches)) {
-        $this->color = array($matches[1], $matches[2], $matches[3]);
+        $this->color = array(intval($matches[1]), intval($matches[2]), intval($matches[3]));
       } else if ($scalebar && is_null($reading) && preg_match('/^OUTLINECOLOR ([0-9]+) ([0-9]+) ([0-9]+)$/i', $sz, $matches)) {
-        $this->outlinecolor = array($matches[1], $matches[2], $matches[3]);
+        $this->outlinecolor = array(intval($matches[1]), intval($matches[2]), intval($matches[3]));
       } else if ($scalebar && is_null($reading) && preg_match('/^UNITS (.+)$/i', $sz, $matches)) {
-        $this->units = self::convertUnits(strtoupper($matches[1]));
+        $this->units = intval(self::convertUnits(strtoupper($matches[1])));
       }
     }
   }
@@ -172,10 +172,14 @@ class Scalebar {
       self::STATUS_OFF => 'OFF'
     );
 
-    if (is_numeric($s)) {
-      return (isset($statuses[$s]) ? $statuses[$s] : FALSE);
-    } else {
+    if (is_numeric($s) && isset($statuses[$s])) {
+      return $statuses[$s];
+    }
+    else if (!is_numeric($s) && array_search($s, $statuses)) {
       return array_search($s, $statuses);
+    }
+    else {
+      throw new Exception(sprintf('Invalid STATUS (%s).', $s));
     }
   }
   /**
@@ -195,10 +199,14 @@ class Scalebar {
       self::UNITS_NAUTICALMILES => 'NAUTICALMILES'
     );
 
-    if (is_numeric($u)) {
-      return (isset($units[$u]) ? $units[$u] : FALSE);
-    } else {
+    if (is_numeric($u) && isset($units[$u])) {
+      return $units[$u];
+    }
+    else if (!is_numeric($u) && array_search($u, $units)) {
       return array_search($u, $units);
+    }
+    else {
+      throw new Exception(sprintf('Invalid UNITS (%s).', $u));
     }
   }
 }

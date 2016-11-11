@@ -187,14 +187,14 @@ class LayerClass {
         $class = TRUE;
       } else if ($class && is_null($reading) && preg_match('/^END( # CLASS)?$/i', $sz)) {
         $class = FALSE;
-      } else if ($class && is_null($reading) && preg_match('/^LABEL$/i', $sz)) { $reading = 'LABEL'; $label[] = $sz; } else if ($class && $reading == 'LABEL' && preg_match('/^END( # LABEL)?$/i', $sz)) { $label[] = $sz; $this->addLabel(new Label($label)); $reading = NULL; unset($label); } else if ($class && $reading == 'LABEL') { $label[] = $sz; } else if ($class && is_null($reading) && preg_match('/^STYLE$/i', $sz)) { $reading = 'STYLE'; $style[] = $sz; } else if ($class && $reading == 'STYLE' && preg_match('/^END( # STYLE)?$/i', $sz)) { $style[] = $sz; $this->addStyle(new Style($style)); $reading = NULL; unset($style); } else if ($class && $reading == 'STYLE') { $style[] = $sz; } else if ($class && is_null($reading) && preg_match('/^EXPRESSION "(.+)"$/i', $sz, $matches)) {
+      } else if ($class && is_null($reading) && preg_match('/^LABEL$/i', $sz)) { $reading = 'LABEL'; $label = array( $sz ); } else if ($class && $reading == 'LABEL' && preg_match('/^END( # LABEL)?$/i', $sz)) { $label[] = $sz; $this->addLabel(new Label($label)); $reading = NULL; unset($label); } else if ($class && $reading == 'LABEL') { $label[] = $sz; } else if ($class && is_null($reading) && preg_match('/^STYLE$/i', $sz)) { $reading = 'STYLE'; $style = array( $sz ); } else if ($class && $reading == 'STYLE' && preg_match('/^END( # STYLE)?$/i', $sz)) { $style[] = $sz; $this->addStyle(new Style($style)); $reading = NULL; unset($style); } else if ($class && $reading == 'STYLE') { $style[] = $sz; } else if ($class && is_null($reading) && preg_match('/^EXPRESSION "(.+)"$/i', $sz, $matches)) {
         $this->expression = $matches[1];
       } else if ($class && is_null($reading) && preg_match('/^EXPRESSION (\(.+\))$/i', $sz, $matches)) {
         $this->expression = $matches[1];
       } else if ($class && is_null($reading) && preg_match('/^MAXSCALEDENOM ([0-9\.]+)$/i', $sz, $matches)) {
-        $this->maxscaledenom = $matches[1];
+        $this->maxscaledenom = floatval($matches[1]);
       } else if ($class && is_null($reading) && preg_match('/^MINSCALEDENOM ([0-9\.]+)$/i', $sz, $matches)) {
-        $this->minscaledenom = $matches[1];
+        $this->minscaledenom = floatval($matches[1]);
       } else if ($class && is_null($reading) && preg_match('/^NAME "(.+)"$/i', $sz, $matches)) {
         $this->name = $matches[1];
       } else if ($class && is_null($reading) && preg_match('/^TEXT "(.+)"$/i', $sz, $matches)) {

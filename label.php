@@ -163,27 +163,27 @@ class Label {
    * @return integer[]
    */
   public function getColor() {
-    return (is_null($this->color) ? array() : array('r' => $this->color[0], 'g' => $this->color[1], 'b' => $this->color[2]));
+    return (empty($this->color) ? array() : array('r' => $this->color[0], 'g' => $this->color[1], 'b' => $this->color[2]));
   }
   /**
    * Get the `outlinecolor` property.
    * @return integer[]
    */
   public function getOutlineColor() {
-    return (is_null($this->outlinecolor) ? array() : array('r' => $this->outlinecolor[0], 'g' => $this->outlinecolor[1], 'b' => $this->outlinecolor[2]));
+    return (empty($this->outlinecolor) ? array() : array('r' => $this->outlinecolor[0], 'g' => $this->outlinecolor[1], 'b' => $this->outlinecolor[2]));
   }
 
   /**
    * Unset `color` property.
    */
   public function unsetColor() {
-    $this->color = NULL;
+    $this->color = array(0, 0, 0);
   }
   /**
    * Unset `outlinecolor` property.
    */
   public function unsetOutlineColor() {
-    $this->outlinecolor = NULL;
+    $this->outlinecolor = array();
   }
 
   /**
@@ -224,25 +224,25 @@ class Label {
       } else if ($label && is_null($reading) && preg_match('/^END( # LABEL)?$/i', $sz)) {
         $label = FALSE;
       } else if ($label && is_null($reading) && preg_match('/^TYPE (.+)$/i', $sz, $matches)) {
-        $this->type = self::convertType(strtoupper($matches[1]));
+        $this->type = intval(self::convertType(strtoupper($matches[1])));
       } else if ($label && is_null($reading) && preg_match('/^FONT "(.+)"$/i', $sz, $matches)) {
         $this->font = $matches[1];
       } else if ($label && is_null($reading) && preg_match('/^SIZE ([0-9]+)$/i', $sz, $matches)) {
-        $this->size = $matches[1];
+        $this->size = intval($matches[1]);
       } else if ($label && is_null($reading) && preg_match('/^SIZE (.+)$/i', $sz, $matches)) {
-        $this->size = self::convertSize(strtoupper($matches[1]));
+        $this->size = intval(self::convertSize(strtoupper($matches[1])));
       } else if ($label && is_null($reading) && preg_match('/^ALIGN (.+)$/i', $sz, $matches)) {
-        $this->align = self::convertAlign(strtoupper($matches[1]));
+        $this->align = intval(self::convertAlign(strtoupper($matches[1])));
       } else if ($label && is_null($reading) && preg_match('/^POSITION (.+)$/i', $sz, $matches)) {
-        $this->position = self::convertPosition(strtoupper($matches[1]));
+        $this->position = intval(self::convertPosition(strtoupper($matches[1])));
       } else if ($label && is_null($reading) && preg_match('/^COLOR ([0-9]+) ([0-9]+) ([0-9]+)$/i', $sz, $matches)) {
-        $this->color = array($matches[1], $matches[2], $matches[3]);
+        $this->color = array(intval($matches[1]), intval($matches[2]), intval($matches[3]));
       } else if ($label && is_null($reading) && preg_match('/^OUTLINECOLOR ([0-9]+) ([0-9]+) ([0-9]+)$/i', $sz, $matches)) {
-        $this->outlinecolor = array($matches[1], $matches[2], $matches[3]);
+        $this->outlinecolor = array(intval($matches[1]), intval($matches[2]), intval($matches[3]));
       } else if ($label && is_null($reading) && preg_match('/^MINSCALEDENOM ([0-9\.]+)$/i', $sz, $matches)) {
-        $this->minscaledenom = $matches[1];
+        $this->minscaledenom = floatval($matches[1]);
       } else if ($label && is_null($reading) && preg_match('/^MAXSCALEDENOM ([0-9\.]+)$/i', $sz, $matches)) {
-        $this->maxscaledenom = $matches[1];
+        $this->maxscaledenom = floatval($matches[1]);
       }
     }
   }
@@ -259,10 +259,14 @@ class Label {
       self::ALIGN_RIGHT  => 'RIGHT'
     );
 
-    if (is_numeric($a)) {
-      return (isset($aligns[$a]) ? $aligns[$a] : FALSE);
-    } else {
+    if (is_numeric($a) && isset($aligns[$a])) {
+      return $aligns[$a];
+    }
+    else if (!is_numeric($a) && array_search($a, $aligns)) {
       return array_search($a, $aligns);
+    }
+    else {
+      throw new Exception(sprintf('Invalid ALIGN (%s).', $a));
     }
   }
   /**
@@ -288,10 +292,14 @@ class Label {
       self::POSITION_NONE   => 'NONE'
     );
 
-    if (is_numeric($p)) {
-      return (isset($positions[$p]) ? $positions[$p] : FALSE);
-    } else {
+    if (is_numeric($p) && isset($positions[$a])) {
+      return $positions[$p];
+    }
+    else if (!is_numeric($p) && array_search($p, $positions)) {
       return array_search($p, $positions);
+    }
+    else {
+      throw new Exception(sprintf('Invalid POSITION (%s).', $p));
     }
   }
   /**
@@ -308,10 +316,14 @@ class Label {
       self::SIZE_GIANT  => 'GIANT',
     );
 
-    if (is_numeric($s)) {
-      return (isset($sizes[$s]) ? $sizes[$s] : FALSE);
-    } else {
+    if (is_numeric($s) && isset($sizes[$s])) {
+      return $sizes[$s];
+    }
+    else if (!is_numeric($s) && array_search($s, $sizes)) {
       return array_search($s, $sizes);
+    }
+    else {
+      throw new Exception(sprintf('Invalid SIZE (%s).', $s));
     }
   }
   /**
@@ -325,10 +337,14 @@ class Label {
       self::TYPE_BITMAP   => 'BITMAP'
     );
 
-    if (is_numeric($t)) {
-      return (isset($types[$t]) ? $types[$t] : FALSE);
-    } else {
+    if (is_numeric($t) && isset($types[$t])) {
+      return $types[$t];
+    }
+    else if (!is_numeric($t) && array_search($t, $types)) {
       return array_search($t, $types);
+    }
+    else {
+      throw new Exception(sprintf('Invalid TYPE (%s).', $t));
     }
   }
 }

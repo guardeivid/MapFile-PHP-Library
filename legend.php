@@ -79,8 +79,8 @@ class Legend {
         $legend = TRUE;
       } else if ($legend && is_null($reading) && preg_match('/^END( # LEGEND)?$/i', $sz)) {
         $legend = FALSE;
-      } else if ($legend && is_null($reading) && preg_match('/^LABEL$/i', $sz)) { $reading = 'LABEL'; $label[] = $sz; } else if ($legend && $reading == 'LABEL' && preg_match('/^END( # LABEL)?$/i', $sz)) { $label[] = $sz; $this->label = new Label($label); $reading = NULL; unset($label); } else if ($legend && $reading == 'LABEL') { $label[] = $sz; } else if ($legend && is_null($reading) && preg_match('/^STATUS (.+)$/i', $sz, $matches)) {
-        $this->status = self::convertStatus(strtoupper($matches[1]));
+      } else if ($legend && is_null($reading) && preg_match('/^LABEL$/i', $sz)) { $reading = 'LABEL'; $label = array( $sz ); } else if ($legend && $reading == 'LABEL' && preg_match('/^END( # LABEL)?$/i', $sz)) { $label[] = $sz; $this->label = new Label($label); $reading = NULL; unset($label); } else if ($legend && $reading == 'LABEL') { $label[] = $sz; } else if ($legend && is_null($reading) && preg_match('/^STATUS (.+)$/i', $sz, $matches)) {
+        $this->status = intval(self::convertStatus(strtoupper($matches[1])));
       }
     }
   }
@@ -96,10 +96,14 @@ class Legend {
       self::STATUS_OFF => 'OFF'
     );
 
-    if (is_numeric($s)) {
-      return (isset($statuses[$s]) ? $statuses[$s] : FALSE);
-    } else {
+    if (is_numeric($s) && isset($statuses[$s])) {
+      return $statuses[$s];
+    }
+    else if (!is_numeric($s) && array_search($s, $statuses)) {
       return array_search($s, $statuses);
+    }
+    else {
+      throw new Exception(sprintf('Invalid STATUS (%s).', $s));
     }
   }
 }
